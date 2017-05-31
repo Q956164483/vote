@@ -1,8 +1,18 @@
 //checkCode();
-var isLoad = false;
-var shareLink = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxb49f0a0ee3b7b621&redirect_uri='+encodeURIComponent(window.location.href.split('?')[0])+'&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect';
+var state = getQueryString('state');
+var component_appid = '';
+var scope = 'snsapi_userinfo';
+if(state){
+    var Astate = state.split(',');
+    component_appid = Astate[0];
+    scope = Astate[1];
+}
+//alert(window.location.href);
+var redirect_uri = window.location.href.replace(/&appid=[^&]*/gi,"").replace(/&state=[^&]*/gi,"").replace(/&code=[^&]*/gi,"").replace(/&&&/gi,"").replace(/&&/gi,"");
+//alert(redirect_uri);
+var shareLink = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid='+getQueryString('appid')+'&redirect_uri='+encodeURIComponent(redirect_uri)+'&response_type=code&scope='+scope+'&state='+state+'&component_appid='+component_appid+'#wechat_redirect';
 var shareData = {
-    imgUrl: 'http://text.dmooo.xyz/pages/vote/2017/0331/dist/images/share.jpg', // 分享图标
+    imgUrl: window.location.href.split('/dist/')[0]+'/images/share.jpg', // 分享图标
     title:$('title').html()+'',   // 分享标题
     desc: $('meta[name=description]').attr('content')+'',   // 分享内容                                                                           // 分享描述
     link: shareLink,   // 分享链接
@@ -15,8 +25,6 @@ var shareData = {
 
     }
 };
-//checkCode();
-
 function checkCode(){
     var code = getQueryString('code');
     if(!code){
@@ -101,7 +109,7 @@ var WXENV = new (function (ticketUrl) {
     };
     var js = document.getElementsByTagName('script')[0];
     self.onEnvReady = function () {
-        var url = self.ticketUrl+'?nonceStr='+self.nonceStr+'&timestamp='+self.timestamp+'&url='+encodeURIComponent(window.location.href.split('#')[0]);
+        var url = self.ticketUrl+'?appid='+getQueryString('appid')+'&nonceStr='+self.nonceStr+'&timestamp='+self.timestamp+'&url='+encodeURIComponent(window.location.href.split('#')[0]);
         $.ajax({
             type: 'GET',
             url: url,

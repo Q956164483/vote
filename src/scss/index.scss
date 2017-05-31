@@ -31,6 +31,9 @@ html,body,#app{
     background-color:rgba(0,0,0,.8);
     background-image:url('../images/share-mask.png');
   }
+  &.mask_6{
+    background-color:rgba(0,0,0,.8);
+  }
   &.loader-mask{
     z-index:99;
     background:$txt-main;
@@ -54,6 +57,9 @@ html,body,#app{
 }
 .opa-0{
   opacity: 0;
+}
+.opa_6{
+  opacity:.6;
 }
 .vote-haved{
   opacity: .6;
@@ -113,7 +119,7 @@ html,body,#app{
 //轮播图
 #slider{
   width:100%;
-  height:12em;
+  height:12.5em;
   img{
     width:100%;
     height:100%;
@@ -317,6 +323,7 @@ html,body,#app{
     margin-top:2em;
     margin-bottom:1em;
     border-radius:.4em;
+    min-height: 40%;
     .title{
       width:7.8em;
       height:2.2em;
@@ -420,6 +427,13 @@ html,body,#app{
   margin:.4em calc(12%/6 - .2em);
   border-radius:.4em;
   border:.1em solid $input-border;
+  #checkPhoto{
+    opacity:0;
+    position:absolute;
+    width:100%;
+    height:100%;
+    display:block;
+  }
   &:nth-child(4n+1){
     margin-left:0;
   }
@@ -464,6 +478,11 @@ html,body,#app{
       padding-top:.1.875rem;
       padding-bottom:.3rem;
     }
+    .vote-detail{
+      padding-top:.3rem;
+      padding-bottom:.3rem;
+      font-size:.9rem;
+    }
     img{
       width:100%;
       display:block;
@@ -492,5 +511,26 @@ html,body,#app{
     margin-top:0;
     width:-webkit-calc(100% - 2em);
     width:calc(100% - 2em);
+  }
+}
+.size0{
+  width:0;
+  height:0;
+  overflow: hidden;
+}
+.authorizer{
+  padding:.5rem;
+  width:10rem;
+  background:#FFF;
+  color:#555;
+  p{
+    text-align:center;
+    width:100%;
+    line-height:2rem;
+  }
+  img{
+    display:block;
+    width:100%;
+    margin:auto;
   }
 }

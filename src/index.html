@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
-    <meta name="description" content="投票描述" id="Description" />
+    <meta name="description" content="快来参加吧~" id="Description" />
     <title id="Title">投票</title>
     <link rel="stylesheet" href="css/index.css">
 </head>
@@ -35,7 +35,7 @@
                         <div class="text">访问人数</div>
                     </div>
                 </div>
-                <a v-if="is_create == 0" @click="showPage5 = true" v-text="is_create == 0?'我要报名':'查看报名'" class="icon-btn-signup box bc-img box-ac box-pc " href="javascript:;">
+                <a v-if="is_create == 0" @click="showPageCreateVote()" v-text="is_create == 0?'我要报名':'查看报名'" class="icon-btn-signup box bc-img box-ac box-pc " href="javascript:;">
                   我要报名
                 </a>
                 <a v-if="is_create == 1" @click="showVoteDetail(newVote.item_guid)" v-text="is_create == 0?'我要报名':'查看报名'" class="icon-btn-signup box bc-img box-ac box-pc " href="javascript:;">
@@ -120,12 +120,19 @@
         </transition>
         <!-- 活动规则 -->
         <transition name="fade">
-          <div v-if="navData.actIndex == 1"  class="box box-ver page page2">
-            <div class="box box-ver part box-f1">
+          <div v-if="navData.actIndex == 1"  class="box box-ver page page2 of-y">
+            <div class="box box-ver part ">
               <div class="title box box-ac box-pc">
                 活动简介
               </div>
-              <div v-html="detail.contents.replace(/[\n]/g,'<br>')" class="txt box-f1 box of-y">
+              <div v-html="detail.contents.replace(/[\n]/g,'<br>')" class="txt  box ">
+              </div>
+            </div>
+            <div class="box box-ver part">
+              <div class="title box box-ac box-pc">
+                参与说明
+              </div>
+              <div v-html="detail.contents_join.replace(/[\n]/g,'<br>')" class="txt box ">
               </div>
             </div>
           </div>
@@ -223,19 +230,20 @@
                 <div  @click="previewImage(index,newVote.images)" v-for="(item,index) in newVote.images" :style="{backgroundImage: 'url(' + item + ')'}" class="photo-item bc-img1">
                     <div @click="delImage(index,$event)" class="icon-photo-del bc-img1"></div>
                 </div>
-                <input @change="uploadImg($event)" class="hide" id="checkPhoto" type="file" multiple="multiple" accept="image/*"/>
-                <label v-if="newVote.images.length < 4" for="checkPhoto" class="photo-item box-ac box-pc box">
+
+                <label v-if="newVote.images.length < (+detail.item_img_limit)" for="checkPhoto" class="photo-item box-ac box-pc box">
                   <div class="icon-camera bc-img"></div>
+                  <input @change="uploadImg($event)"  id="checkPhoto" type="file" multiple="multiple" accept="image/*"/>
                 </label>
 
                 <!-- <div @click="choseImg()" v-if="newVote.images.length < 4" class="photo-item box-ac box-pc box">
                   <div class="icon-camera bc-img">
                   </div>
                 </div> -->
-                <div @click="triggerQiniu"  v-if="newVote.images.length < 4" class="photo-item box-ac box-pc box">
+                <!-- <a id="pickfiles" href="#" :class="{'size0':newVote.images.length>3}" class="photo-item box-ac box-pc box">
                   <div class="icon-camera bc-img">
                   </div>
-                </div>
+                </a> -->
               </div>
               <div @click="creatVote()" v-text="is_create==0?'提交':'修改'" class="icon-btn-signup box box-ac box-pc bc-img">
               </div>
@@ -270,11 +278,13 @@
             <div class="content box box-ver">
                 <div v-text="itemDetail.title" class="vote-title">
                 </div>
+                <div v-html="(itemDetail.contents+'').replace(/[\n]/g,'<br>')" class="vote-detail">
+                </div>
                 <img @click="previewImage(index,itemDetail.images)" v-for="(item,index) in itemDetail.images" :src="item" alt="">
                 <div v-if="itemDetail.item_guid != newVote.item_guid" @click="vote(itemDetail,$event)" v-text="itemDetail.is_vote=='1'?'已投':'投一票'" :class="(itemDetail.is_vote=='1'||itemDetail.statuss_item != 1)?'vote-haved':''"  class="icon-btn-signup box box-ac box-pc bc-img">
                   投一票
                 </div>
-                <div v-if="itemDetail.item_guid == newVote.item_guid" @click="showPage5()"  class="icon-btn-signup box box-ac box-pc bc-img">
+                <div v-if="itemDetail.item_guid == newVote.item_guid" @click="showPageCreateVote()"  class="icon-btn-signup box box-ac box-pc bc-img">
                   修改信息
                 </div>
                 <div v-if="itemDetail.item_guid == newVote.item_guid" @click="showPageShareFlag = true"  class="icon-btn-signup box box-ac box-pc bc-img">
@@ -316,7 +326,9 @@
       </transition>
       <!-- toast -->
       <transition name="fade">
-        <div v-if="toast.show" v-text="toast.msg" class="toast"></div>
+        <div class="mask" v-if="toast.show">
+          <div  v-text="toast.msg" class="toast"></div>
+        </div>
       </transition>
       <transition name="fade">
         <div v-if="loader" class="mask loader-mask">
@@ -336,21 +348,21 @@
           <div class="share bc-img" @click="showPageShareFlag=false"></div>
         </div>
       </transition>
+      <transition name="fade">
+        <div v-if="showAuthorizerFlag"  class="mask box box-ac box-pc mask_6"  @click="showAuthorizerFlag=false">
+          <div class="authorizer">
+            <img :src="authorizer.qrcode_url" alt="">
+            <p class="box box-pc">关注公众号才能投票</p>
+          </div>
+        </div>
+      </transition>
     </div>
-    <!-- <script src="https://cdn.staticfile.org/plupload/2.1.9/plupload.full.min.js"></script> -->
-    <script src="https://cdn.staticfile.org/plupload/2.1.9/moxie.js"></script>
-    <script src="https://cdn.staticfile.org/plupload/2.1.9/plupload.dev.js"></script>
-    <script src="http://cdn.staticfile.org/qiniu-js-sdk/1.0.14-beta/qiniu.js"></script>
     <script src="js/concat.js"></script>
 </body>
 <script>
-//   Vue.use(VueLazyload,{
-//    //loading:'images/loading.png'
-//   })
    document.getElementById("pages").style.height = document.getElementById("app").offsetHeight - document.getElementById("footer").offsetHeight + 'px';
    var vueSwipe = VueSwipe.Swipe;
    var vueSwipeItem = VueSwipe.SwipeItem;
-
    var vm = new Vue({
        el:"#app",
        components: {
@@ -358,9 +370,18 @@
          'swipe-item': vueSwipeItem
        },
        data: {
-           activityGuid:"345e80d0999bbdaefbaa627f33d354a9",
+           activityGuid:getQueryString('activity_guid'),
            code:getQueryString('code'),
+           appid:getQueryString('appid'),
+           state:getQueryString('state'),
            openId:'',
+           subscribe:false,
+           authorizer:{
+                "nick_name": "",
+                "head_img": "",
+                "qrcode_url": "",
+                "is_open": ""
+           },
            navData:{
              list:['首页','活动介绍','排行榜','我的投票'],
              actIndex:0
@@ -371,6 +392,7 @@
            },
            loader:true,
            isLoading:false,
+           token_qiniu:'',
            toast:{
              show:false,
              msg:'loading....'
@@ -392,7 +414,9 @@
            voteList2:[],
            searchList:[],
            detail: {
+             item_img_limit:4,
              contents:'',
+             contents_join:'',
              banners:['images/loading.png']
            },
            itemDetail:{},
@@ -402,13 +426,14 @@
            showPage6:false, //控制投票详情的显示
            showPage7:false, //控制搜索的显示
            showPageShareFlag:false,
+           showAuthorizerFlag:false,
            choseImgs:[]
        },
        mounted: function(){
          var _this = this;
          setTimeout(function(){
            _this.loader = false;
-         },2222);
+         },2000);
          this.getRank();
          this.getUserInfo();
          this.getQiuniuToken();
@@ -427,12 +452,8 @@
                  this.tabData.actIndex = index;
                }
            },
-           formatDate: function(value){
-              return new Date(value).toLocaleString();
-           },
-           formatHtml:function(value){
-              var regx = /<[^>]*>|<\/[^>]*>/gm;
-              return value.replace(regx,"");
+           formatDate: function(value,Format){
+              return new Date(value).Format(Format);
            },
            openToast:function(msg,time){
              var _this = this;
@@ -458,7 +479,7 @@
                  success: function(data){
                    //alert(JSON.stringify(data));
                    if(data.status == 1){
-                     _this.inintQiniu(data.data.token);
+                     _this.token_qiniu = data.data.token;
                    }else{
                      _this.openToast(data.message,1000);
                    }
@@ -468,57 +489,19 @@
                  }
              })
            },
-          //  dataURItoBlob:function(dataURI) {
-          //     var byteString = atob(dataURI.split(',')[1]);
-          //     var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
-          //     var ab = new ArrayBuffer(byteString.length);
-          //     var ia = new Uint8Array(ab);
-          //     for (var i = 0; i < byteString.length; i++) {
-          //         ia[i] = byteString.charCodeAt(i);
-          //     }
-          //     return new Blob([ab], {type: mimeString});
-          //  },
-          //  compressImg:function(file,maxWidth,cb){
-          //    var _this = this;
-          //    var img = new Image();
-          //    var url = URL.createObjectURL(file);
-          //    var formData = new FormData();
-          //    img.src = url;
-          //    img.onload = function() {
-          //       URL.revokeObjectURL(url);
-          //       // 当图片宽度超过 400px 时, 就压缩成 400px, 高度按比例计算
-          //       // 压缩质量可以根据实际情况调整
-          //       var w = Math.min(maxWidth, img.width);
-          //       var h = img.height * (w / img.width);
-          //       var canvas = document.createElement('canvas');
-          //       var ctx = canvas.getContext('2d');
-          //       // 设置 canvas 的宽度和高度
-          //       canvas.width = w;
-          //       canvas.height = h;
-          //       // 把图片绘制到 canvas 中
-          //       ctx.drawImage(img, 0, 0, w, h);
-          //       // 取出 base64 格式数据
-          //       var dataURL = canvas.toDataURL('image/png');
-          //       var Blob = _this.dataURItoBlob(dataURL);
-          //       var newFile = new FileReader();
-          //       newFile.onload = function(e) {
-          //         if(cb){
-          //           cb(newFile);
-          //         }
-          //       }
-          //       newFile.readAsDataURL(Blob);
-          //    }
-          //  },
            uploadImg:function(event){
+             var domain = 'http://on3qzk66b.bkt.clouddn.com/';
              var _this = this;
              var ele = event.currentTarget;
              var formData = new FormData();
              formData.append('file',ele.files[0]);
+             formData.append('token',_this.token_qiniu);
+             //formData.append('key', result.key)
              ele.value = '';
              _this.openToast('上传中...');
              $.ajax({
-               url: '/img/upload?types=qiniu&item_img_limit=5',
-               type: 'post',
+               url: 'http://up-z2.qiniu.com/',
+               type: 'POST',
                data: formData,
                processData: false,
                contentType:false,
@@ -539,13 +522,29 @@
                   return myXhr;
                },
                success: function(data){
-                   //alert(JSON.stringify(data));
-                   if(data.status == 1){
-                     _this.openToast('上传成功',1000);
-                     _this.newVote.images.push(data.data.url);
-                   }else{
-                     _this.openToast(data.message,1000);
-                   }
+                 var sourceLink = domain + data.key;
+                 $.ajax({
+                     type: 'POST',
+                     url: '/com/get_local_img_save_remote',
+                     data:{
+                       url:sourceLink + '?imageView2/2/w/800',
+                       types:'qiniu'
+                     },
+                     dataType: 'json',
+                     success: function(data){
+                       _this.openToast('上传成功',1000);
+                       if(data.status == 1){
+                          //_this.newVote.images.push(sourceLink);
+                          //_this.newVote.images.push(sourceLink + '?imageView2/2/w/800');
+                          _this.newVote.images.push(data.data.img);
+                       }else{
+                         _this.openToast(data.message,1000);
+                       }
+                     },
+                     error: function(xhr, type){
+                       _this.openToast('上传失败',1000);
+                     }
+                 })
                },
                error: function(XMLHttpRequest, textStatus, errorThrown) {
                    _this.openToast('上传失败',1000);
@@ -556,65 +555,65 @@
             //
             //  })
            },
-           choseImg:function(){
-             var _this = this;
-             wx.chooseImage({
-                count: 1, // 默认9
-                sizeType: ['original', 'compressed'], // 可以指定是原图还是压缩图，默认二者都有
-                sourceType: ['album', 'camera'], // 可以指定来源是相册还是相机，默认二者都有
-                success: function (res) {
-                    var localIds = res.localIds; // 返回选定照片的本地ID列表，localId可以作为img标签的src属性显示图片
-                    var img = new Image();
-                    img.src = localIds[0];
-                    img.onload = function () {
-                        // 当图片宽度超过 400px 时, 就压缩成 400px, 高度按比例计算
-                        // 压缩质量可以根据实际情况调整
-                        var w = Math.min(400, img.width);
-                        var h = img.height * (w / img.width);
-                        var canvas = document.createElement('canvas');
-                        var ctx = canvas.getContext('2d');
-                        // 设置 canvas 的宽度和高度
-                        canvas.width = w;
-                        canvas.height = h;
-                        // 把图片绘制到 canvas 中
-                        ctx.drawImage(img, 0, 0, w, h);
-                        // 取出 base64 格式数据
-                        var dataURL = canvas.toDataURL('image/png');
-                        var Blob = _this.dataURItoBlob(dataURL);
-                        var formData = new FormData();
-                        formData.append('file',Blob);
-                        _this.openToast('上传中...');
-                        $.ajax({
-                          url: '/img/upload',
-                          type: 'post',
-                          data: formData,
-                          // 因为data值是FormData对象，不需要对数据做处理
-                          processData: false,
-                          contentType: false,
-                          success: function(data){
-                            //alert(JSON.stringify(data));
-                              if(data.status == 1){
-                                _this.openToast('上传成功',1000);
-                                _this.newVote.images.push(data.data.url);
-                              }else{
-                                _this.openToast(data.message,1000);
-                              }
-                          },
-                          error: function(XMLHttpRequest, textStatus, errorThrown) {
-                              _this.openToast('上传失败',1000);
-                          }
-                        });
-                    };
-                    // wx.uploadImage({
-                    //     localId: localIds[0], // 需要上传的图片的本地ID，由chooseImage接口获得
-                    //     isShowProgressTips: 1, // 默认为1，显示进度提示
-                    //     success: function (res) {
-                    //         var serverId = res.serverId; // 返回图片的服务器端ID
-                    //     }
-                    // });
-                }
-            });
-           },
+          //  choseImg:function(){
+          //    var _this = this;
+          //    wx.chooseImage({
+          //       count: 1, // 默认9
+          //       sizeType: ['original', 'compressed'], // 可以指定是原图还是压缩图，默认二者都有
+          //       sourceType: ['album', 'camera'], // 可以指定来源是相册还是相机，默认二者都有
+          //       success: function (res) {
+          //           var localIds = res.localIds; // 返回选定照片的本地ID列表，localId可以作为img标签的src属性显示图片
+          //           var img = new Image();
+          //           img.src = localIds[0];
+          //           img.onload = function () {
+          //               // 当图片宽度超过 400px 时, 就压缩成 400px, 高度按比例计算
+          //               // 压缩质量可以根据实际情况调整
+          //               var w = Math.min(400, img.width);
+          //               var h = img.height * (w / img.width);
+          //               var canvas = document.createElement('canvas');
+          //               var ctx = canvas.getContext('2d');
+          //               // 设置 canvas 的宽度和高度
+          //               canvas.width = w;
+          //               canvas.height = h;
+          //               // 把图片绘制到 canvas 中
+          //               ctx.drawImage(img, 0, 0, w, h);
+          //               // 取出 base64 格式数据
+          //               var dataURL = canvas.toDataURL('image/png');
+          //               var Blob = _this.dataURItoBlob(dataURL);
+          //               var formData = new FormData();
+          //               formData.append('file',Blob);
+          //               _this.openToast('上传中...');
+          //               $.ajax({
+          //                 url: '/img/upload',
+          //                 type: 'post',
+          //                 data: formData,
+          //                 // 因为data值是FormData对象，不需要对数据做处理
+          //                 processData: false,
+          //                 contentType: false,
+          //                 success: function(data){
+          //                   //alert(JSON.stringify(data));
+          //                     if(data.status == 1){
+          //                       _this.openToast('上传成功',1000);
+          //                       _this.newVote.images.push(data.data.url);
+          //                     }else{
+          //                       _this.openToast(data.message,1000);
+          //                     }
+          //                 },
+          //                 error: function(XMLHttpRequest, textStatus, errorThrown) {
+          //                     _this.openToast('上传失败',1000);
+          //                 }
+          //               });
+          //           };
+          //           // wx.uploadImage({
+          //           //     localId: localIds[0], // 需要上传的图片的本地ID，由chooseImage接口获得
+          //           //     isShowProgressTips: 1, // 默认为1，显示进度提示
+          //           //     success: function (res) {
+          //           //         var serverId = res.serverId; // 返回图片的服务器端ID
+          //           //     }
+          //           // });
+          //       }
+          //   });
+          //  },
            previewImage:function(index,Aurl){
              wx.previewImage({
                 current: Aurl[index], // 当前显示图片的http链接
@@ -660,16 +659,19 @@
              var _this = this;
              $.ajax({
                  type: 'GET',
-                 url: '/com/get_userinfo_by_code?code='+_this.code,
+                 url: '/com/get_userinfo_by_code?code='+_this.code+'&appid='+_this.appid+'&state='+_this.state,
                  dataType: 'json',
                  success: function(data){
+                   //alert(JSON.stringify(data));
                    if(data.status == 1){
                      _this.openId = data.data.userinfo.openid;
+                     _this.getSubscribe();
                      _this.getDetail();
                      _this.getVoteList(0,this.listPage0);
                      _this.getVoteList(1,this.listPage1);
                      _this.getVoteList(2,this.listPage2);
                      _this.getMyVoteList();
+                     _this.getAuthorizer();
                      _this.getMyVoteItem(function(){
                        if(getQueryString('item_guid')){
                          _this.showVoteDetail(getQueryString('item_guid'));
@@ -683,6 +685,64 @@
                    _this.openToast('网络繁忙',1500);
                  }
              })
+           },
+           getSubscribe:function(){
+              var _this = this;
+              $.ajax({
+                 type: 'GET',
+                 url: '/com/get_user_info_by_openid?openid='+_this.openId+'&appid='+_this.appid,
+                 dataType: 'json',
+                 success: function(data){
+                   //alert(JSON.stringify(data));
+                   if(data.status == 1){
+                     _this.subscribe = data.data.subscribe;
+                   }else{
+                     _this.openToast(data.message,1000);
+                   }
+                 },
+                 error: function(xhr, type){
+                   _this.openToast('网络繁忙',1500);
+                 }
+              })
+           },
+           getAuthorizer:function(){
+             var _this = this;
+              $.ajax({
+                 type: 'GET',
+                 url: '/com/get_authorizer?appid='+_this.appid,
+                 dataType: 'json',
+                 success: function(data){
+                   //alert(JSON.stringify(data));
+                   if(data.status == 1){
+                     _this.authorizer = data.data;
+                     $.ajax({
+                        type: 'POST',
+                        url: '/com/get_local_img_save_remote',
+                        data:{
+                          url:data.data.qrcode_url
+                        },
+                        dataType: 'json',
+                        success: function(data){
+                          //alert(JSON.stringify(data));
+                          if(data.status == 1){
+                            _this.authorizer.qrcode_url = data.data.img;
+                            ALERT(_this.authorizer.qrcode_ur);
+                          }else{
+                            _this.openToast(data.message,1000);
+                          }
+                        },
+                        error: function(xhr, type){
+                          _this.openToast('网络繁忙',1500);
+                        }
+                      })
+                   }else{
+                     _this.openToast(data.message,1000);
+                   }
+                 },
+                 error: function(xhr, type){
+                   _this.openToast('网络繁忙',1500);
+                 }
+              })
            },
            creatVote:function(){
              var _this = this;
@@ -743,13 +803,18 @@
            },
            vote: function(item,event,index){
              var _this = this;
+             if(_this.subscribe == 0){
+                _this.openToast('关注公众号才能投票哦',800);
+                _this.showAuthorizerFlag = true;
+                return false;
+             }
              if(item.statuss_item == 0||item.statuss_item == 2){
-               _this.openToast('该投票尚未审核完成,暂不能投票',800);
-               return false;
+                _this.openToast('该投票尚未审核完成,暂不能投票',800);
+                return false;
              }
              if(item.is_vote == 1){
-               _this.openToast('您已经给该选手投过票啦',800);
-               return false;
+                _this.openToast('您已经给该选手投过票啦',800);
+                return false;
              }
             //  if(item.item_guid == _this.newVote.item_guid){
             //    _this.openToast('不能给自己投票哦',800);
@@ -855,13 +920,14 @@
                    if(data.status == 1){
                       _this.itemDetail = data.data;
                       _this.showPage6 = true;
-                      if(data.data.item_guid == _this.newVote.item_guid){
+                      //alert(encodeURIComponent(window.location.href.split('?')[0]+'?item_guid='+ data.data.item_guid));
+                      //if(data.data.item_guid == _this.newVote.item_guid){
                         setTimeout(function(){
                           WXENV._updateShareData({
                             imgUrl: data.data.images[0], // 分享图标
-                            title:'我是'+data.data.realname,   // 分享标题
-                            desc: '快来给我投票吧',   // 分享内容                                                                           // 分享描述
-                            link: 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxb49f0a0ee3b7b621&redirect_uri='+encodeURIComponent(window.location.href.split('?')[0]+'?item_guid='+_this.newVote.item_guid)+'&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect',   // 分享链接
+                            title:'我是'+data.data.realname + '正在参加' + _this.detail.title,   // 分享标题
+                            desc: '快来给我投票吧',   // 分享内容          
+                            link: 'https://open.weixin.qq.com/connect/oauth2/authorize?appid='+_this.appid+'&redirect_uri='+encodeURIComponent(redirect_uri+'&item_guid='+ data.data.item_guid)+'&response_type=code&scope='+scope+'&state='+state+'&component_appid='+component_appid+'#wechat_redirect',                                                                 // 分享描述
                             type: '',
                             dataUrl: '',
                             success: function (res) {
@@ -872,8 +938,8 @@
                               _this.showPageShareFlag = false;
                             }
                           });
-                        })
-                      }
+                        },333);
+                      //}
                    }else{
                      _this.openToast(data.message,1000);
                    }
@@ -923,10 +989,16 @@
                var _this = this;
                $.get('/voteimage/get_detail?activity_guid='+_this.activityGuid, function(data, status, xhr){
                  if(data.status == 1){
+                   //alert(JSON.stringify(data.data.contents_join));
                    _this.detail = data.data;
-                  //  setTimeout(function(){
-                  //    _this.initSlider();
-                  //  },10)
+                   if(_this.detail.banners[0]){
+                      shareData.imgUrl = _this.detail.banners[0];
+                      shareData.title = _this.detail.title;
+                      //shareData.desc = _this.detail.title;
+                      $('#Title').html(_this.detail.title);
+                      $('meta[name=description]').attr('content',_this.detail.title);
+                      WXENV._updateShareData(shareData);
+                   }
                  }else{
                    //openToast('获取活动详情',2000);
                  }
@@ -974,74 +1046,14 @@
            closeVoteDetail:function(){
              var _this = this;
              _this.showPage6 = false;
-             if(_this.itemDetail.item_guid == _this.newVote.item_guid){
+             //if(_this.itemDetail.item_guid == _this.newVote.item_guid){
                WXENV._updateShareData(shareData);
-             }
+             //}
            },
-           triggerQiniu:function(){
-             alert(1);
-             $('#uploadBtn').trigger('mousedup mousedown click');
+           showPageCreateVote:function(){
+              var _this = this;
+              _this.showPage5 = true;
            },
-           inintQiniu:function(uptoken){
-             console.log('uptoken_url:'+ uptoken);
-             uploader = Qiniu.uploader({
-                 runtimes: 'html5,flash,html4',    //上传模式,依次退化
-                 browse_button:'uploadBtn',       //上传选择的点选按钮，**必需**
-                 //uptoken_url: uptoken_url,            //Ajax请求upToken的Url，**强烈建议设置**（服务端提供）
-                 uptoken:uptoken, //若未指定uptoken_url,则必须指定 uptoken ,uptoken由其他程序生成
-                 // unique_names: true, // 默认 false，key为文件名。若开启该选项，SDK为自动生成上传成功后的key（文件名）。
-                 // save_key: true,   // 默认 false。若在服务端生成uptoken的上传策略中指定了 `sava_key`，则开启，SDK会忽略对key的处理
-                 domain:'http://on3qzk66b.bkt.clouddn.com/',   //bucket 域名，下载资源时用到，**必需**
-                 get_new_uptoken:false,  //设置上传文件的时候是否每次都重新获取新的token
-                 //container: 'photos',           //上传区域DOM ID，默认是browser_button的父元素，
-                 max_file_size: '10mb',           //最大文件体积限制
-                 flash_swf_url: 'js/qiniu/Moxie.swf',  //引入flash,相对路径
-                 max_retries: 3,                   //上传失败最大重试次数
-                 //dragdrop: true,                   //开启可拖曳上传
-                 //drop_element: 'photos',        //拖曳上传区域元素的ID，拖曳文件或文件夹后可触发上传
-                 chunk_size: '4mb',                //分块上传时，每片的体积
-                 auto_start: true,                 //选择文件后自动上传，若关闭需要自己绑定事件触发上传
-                 init: {
-                     'FilesAdded': function(up, files) {
-                         plupload.each(files, function(file) {
-                             // 文件添加进队列后,处理相关的事情
-                         });
-                     },
-                     'BeforeUpload': function(up, file) {
-                            // 每个文件上传前,处理相关的事情
-                     },
-                     'UploadProgress': function(up, file) {
-                            // 每个文件上传时,处理相关的事情
-                     },
-                     'FileUploaded': function(up, file, info) {
-                            alert(1);
-                            // 每个文件上传成功后,处理相关的事情
-                            // 其中 info 是文件上传成功后，服务端返回的json，形式如
-                            // {
-                            //    "hash": "Fh8xVqod2MQ1mocfI4S4KpRL6D98",
-                            //    "key": "gogopher.jpg"
-                            //  }
-                            // 参考http://developer.qiniu.com/docs/v6/api/overview/up/response/simple-response.html
-                            var domain = up.getOption('domain');
-                            var res = parseJSON(info);
-                            var sourceLink = domain + res.key; 获取上传成功后的文件的Url
-                     },
-                     'Error': function(up, err, errTip) {
-                            //上传出错时,处理相关的事情
-                     },
-                     'UploadComplete': function() {
-                            //队列文件处理完毕后,处理相关的事情
-                     },
-                     'Key': function(up, file) {
-                         // 若想在前端对每个文件的key进行个性化处理，可以配置该函数
-                         // 该配置必须要在 unique_names: false , save_key: false 时才生效
-                         var key = "";
-                         // do something with key here
-                         return key
-                     }
-                 }
-             })
-           }
        },
        directives: {
 				scroll: {

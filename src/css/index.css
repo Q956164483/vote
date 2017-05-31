@@ -636,6 +636,8 @@ html, body, #app {
     height: 100%;
     background-color: rgba(0, 0, 0, 0.8);
     background-image: url("../images/share-mask.png"); }
+  .mask.mask_6 {
+    background-color: rgba(0, 0, 0, 0.8); }
   .mask.loader-mask {
     z-index: 99;
     background: #e97190; }
@@ -657,6 +659,9 @@ html, body, #app {
 
 .opa-0 {
   opacity: 0; }
+
+.opa_6 {
+  opacity: .6; }
 
 .vote-haved {
   opacity: .6; }
@@ -736,7 +741,7 @@ html, body, #app {
 
 #slider {
   width: 100%;
-  height: 12em; }
+  height: 12.5em; }
   #slider img {
     width: 100%;
     height: 100%; }
@@ -908,7 +913,8 @@ html, body, #app {
   border: 0.1em solid #e97190;
   margin-top: 2em;
   margin-bottom: 1em;
-  border-radius: .4em; }
+  border-radius: .4em;
+  min-height: 40%; }
   .page2 .part .title, .page3 .part .title, .page4 .part .title {
     width: 7.8em;
     height: 2.2em;
@@ -990,6 +996,12 @@ html, body, #app {
   margin: 0.4em calc(12%/6 - .2em);
   border-radius: .4em;
   border: 0.1em solid #efefef; }
+  .photo-item #checkPhoto {
+    opacity: 0;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: block; }
   .photo-item:nth-child(4n+1) {
     margin-left: 0; }
   .photo-item:nth-child(4n) {
@@ -1025,6 +1037,10 @@ html, body, #app {
   .page6 .content .vote-title {
     padding-top: 0.1 0.875rem;
     padding-bottom: .3rem; }
+  .page6 .content .vote-detail {
+    padding-top: .3rem;
+    padding-bottom: .3rem;
+    font-size: .9rem; }
   .page6 .content img {
     width: 100%;
     display: block;
@@ -1047,3 +1063,22 @@ html, body, #app {
   margin-top: 0;
   width: -webkit-calc(100% - 2em);
   width: calc(100% - 2em); }
+
+.size0 {
+  width: 0;
+  height: 0;
+  overflow: hidden; }
+
+.authorizer {
+  padding: .5rem;
+  width: 10rem;
+  background: #FFF;
+  color: #555; }
+  .authorizer p {
+    text-align: center;
+    width: 100%;
+    line-height: 2rem; }
+  .authorizer img {
+    display: block;
+    width: 100%;
+    margin: auto; }
